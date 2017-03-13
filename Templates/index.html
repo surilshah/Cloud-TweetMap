@@ -1,0 +1,147 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Tweet Map</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <style>
+        /* navbar */
+        .navbar-default {
+            background-color: #000000;
+            border-color: #ffffff;
+            z-index: 1000;
+        }
+        /* title */
+        .navbar-default .navbar-brand {
+            color: #ffffff;
+        }
+        .navbar-default .navbar-brand:hover,
+        .navbar-default .navbar-brand:focus {
+            color: #d3d3d3;
+        }
+        /* link */
+        .navbar-default .navbar-nav > li > a {
+            color: #000000;
+        }
+        .navbar-default .navbar-nav > li > a:hover,
+        .navbar-default .navbar-nav > li > a:focus {
+            color: #333;
+        }
+        .navbar-default .navbar-nav > .active > a,
+        .navbar-default .navbar-nav > .active > a:hover,
+        .navbar-default .navbar-nav > .active > a:focus {
+            color: #555;
+            background-color: #e7878e;
+        }
+        .navbar-default .navbar-nav > .open > a,
+        .navbar-default .navbar-nav > .open > a:hover,
+        .navbar-default .navbar-nav > .open > a:focus {
+            color: #555;
+            background-color: #9b64d5;
+        }
+        /* caret */
+        .navbar-default .navbar-nav > .dropdown > a .caret {
+            border-top-color: #777;
+            border-bottom-color: #777;
+        }
+        .navbar-default .navbar-nav > .dropdown > a:hover .caret,
+        .navbar-default .navbar-nav > .dropdown > a:focus .caret {
+            border-top-color: #333;
+            border-bottom-color: #333;
+        }
+        .navbar-default .navbar-nav > .open > a .caret,
+        .navbar-default .navbar-nav > .open > a:hover .caret,
+        .navbar-default .navbar-nav > .open > a:focus .caret {
+            border-top-color: #555;
+            border-bottom-color: #555;
+        }
+        /* mobile version */
+        .navbar-default .navbar-toggle {
+            border-color: #a792dd;
+        }
+        .navbar-default .navbar-toggle:hover,
+        .navbar-default .navbar-toggle:focus {
+            background-color: #5dd6dd;
+        }
+        .navbar-default .navbar-toggle .icon-bar {
+            background-color: #cc6761;
+        }
+        @media (max-width: 767px) {
+            .navbar-default .navbar-nav .open .dropdown-menu > li > a {
+                color: #777;
+            }
+            .navbar-default .navbar-nav .open .dropdown-menu > li > a:hover,
+            .navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+                color: #333;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand">TweetMap</a>
+        </div>
+        <div class="collapse navbar-collapse" action="/filter/" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li>
+                    <form class="navbar-form navbar-left" role="search" action="/tweet/" method="POST">
+                        {% csrf_token %}
+                        <input type="text" class="form-control" placeholder="Search" name="myword" id="myword">
+                        <input type="submit" value="Submit">
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div id="map-helper" style="height: 100%;width: 100%;position: fixed;">
+    <div id="map" style="height: 100%;width: 100%;margin-top: -4%;"></div>
+</div>
+<script>
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 3,
+            center: {lat: 39.0550557, lng: 4.0322128}
+        });
+        if ({{my_data |safe}}) {
+            var data_from_django = {{ my_data |safe }};
+            total_tweets = data_from_django.tweet;
+            var data = [];
+            if (total_tweets.length <= 0)
+                alert("No tweets found.");
+            else
+                alert(total_tweets.length + " tweets added.");
+            for (var i = 0; i < total_tweets.length; i++) {
+                var res = total_tweets[i];
+                data[i] = "<strong>Tweet:</strong>  " + res.message + "<br><strong>Author:</strong>  " + res.author + "<br><strong>Location:</strong>  " + res.location + "<br><strong>Tweet Creation Timestamp:</strong>  " + res.date;
+                var marker = new google.maps.Marker({
+                    position:{
+                        lat:res.lat,
+                        lng:res.lng
+                    },
+                    map: map
+                });
+                var infowindow = new google.maps.InfoWindow();
+                google.maps.event.addListener(marker, 'click', (function(marker, i) {
+                    return function() {
+                        infowindow.setContent(data[i]);
+                        infowindow.open(map, marker);
+                    }
+                })(marker, i));
+            }
+        }
+    }
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap"> /*Enter Google Maps API Key in place of YOUR_API_KEY*/
+</script>
+</body>
+</html>
