@@ -79,7 +79,12 @@ def home(request):
 
     query = str(request.POST.get('myword'))
 
-    stream.filter(track=[query,'#'+query])
+    stream.timeout = 10
+
+    try:
+        stream.filter(track=[query,'#'+query])
+    except:
+        pass
 
     pass_list = {}
 
