@@ -20,9 +20,12 @@ from django.contrib import admin
 from Tweets import views
 
 urlpatterns = [
-    url(r'^admin/', admin.site.urls),
     url(r'^$', views.index, name='index'),
-    url(r'^tweet/', views.home, name='home'),
+    url(r'^tweet/$', views.home, name='home'),
+    url(r'^geodist/(?P<lat>[\w.-](\d+)\.(\d+))/(?P<lng>[\w.-](\d+)\.(\d+))/$', views.geodist, name='geodistance'),
+    url(r'^geodist/(?P<lat>(\d+)\.(\d+))/(?P<lng>(\d+)\.(\d+))/$', views.geodist, name='geodistance'),
+    url(r'^geodist/(?P<lat>[\w.-](\d+)\.(\d+))/(?P<lng>(\d+)\.(\d+))/$', views.geodist, name='geodistance'),
+    url(r'^geodist/(?P<lat>(\d+)\.(\d+))/(?P<lng>[\w.-](\d+)\.(\d+))/$', views.geodist, name='geodistance'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

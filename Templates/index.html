@@ -120,11 +120,11 @@
                         alert(total_tweets.length + " tweets added.");
                         for (var i = 0; i < total_tweets.length; i++) {
                             var res = total_tweets[i];
-                            data[i] = "<strong>Tweet:</strong>  " + res.message + "<br><strong>Author:</strong>  " + res.author + "<br><strong>Location:</strong>  " + res.location + "<br><strong>Tweet Creation Timestamp:</strong>  " + res.date;
+                            data[i] = "<strong>Tweet:</strong>  " + res.message + "<br><strong>Author:</strong>  " + res.author + "<br><strong>Location:</strong>  " + res.location.name + "<br><strong>Tweet Creation Timestamp:</strong>  " + res.date;
                             var marker = new google.maps.Marker({
                                 position:{
-                                    lat:res.lat,
-                                    lng:res.lng
+                                    lat:res.location.coords.lat,
+                                    lng:res.location.coords.lon
                                 },
                                 map: map
                             });
@@ -138,6 +138,11 @@
                         }
                     }
                 }
+                var a;
+                google.maps.event.addListener(map, 'click', function(event) {
+                    a = event.latLng;
+                    window.location.href = "/geodist/"+a.lat()+"/"+a.lng();
+                });
             }
         </script>
         <script async defer

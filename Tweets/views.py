@@ -50,9 +50,13 @@ def home(request):
                     try:
                         doc = {"author": dict_data["user"]["screen_name"],
                                "date": dict_data["created_at"],
-                               "location": dict_data['user']['location'],
-                               "lat": geocoder.google(dict_data['user']['location']).latlng[0],
-                               "lng": geocoder.google(dict_data['user']['location']).latlng[1],
+                               "location": {
+                                    "name": dict_data['user']['location'],
+                                    "coords": {
+                                        "lat": geocoder.google(dict_data['user']['location']).latlng[0],
+                                        "lon": geocoder.google(dict_data['user']['location']).latlng[1]
+                                    }
+                                },
                                "message": dict_data["text"],
                                "my_id": query}
                         es.index(index="tweetmap",doc_type="tweets",body=doc)
@@ -66,30 +70,21 @@ def home(request):
         def on_error(self, status):
             print(status)
 
-
     # create instance of the tweepy tweet stream listener
     listener = TweetStreamListener()
-
     # set twitter keys/tokens
     auth = OAuthHandler(ckey, csecret)
     auth.set_access_token(atoken, asecret)
-
     # create instance of the tweepy stream
     stream = Stream(auth, listener)
-
     query = str(request.POST.get('myword'))
-
     stream.timeout = 10
-
     try:
         stream.filter(track=[query,'#'+query])
     except:
         pass
-
     pass_list = {}
-
     pass_list.setdefault('tweet', [])
-
     res = es.search(size=5000, index="tweetmap", doc_type="tweets", body={
         "query":{
             "match": {
@@ -97,10 +92,43 @@ def home(request):
             }
         }
     })
-
     for j in res['hits']['hits']:
         pass_list['tweet'].append(j['_source'])
-
     pass_list_final = json.dumps(pass_list)
+    return render(request,"index.html",{"my_data":pass_list_final})
 
+def geodist(request, *args, **kwargs):
+    # create instance of elasticsearch
+    host = 'ElasticSearch_Host' #Creata a domain on ElasticSearch Service and add the endpoint here
+    awsauth = AWS4Auth('AWS_Access_Key', 'AWS_Access_Secret_Key', 'AWS_Region', 'es')
+    es = elasticsearch.Elasticsearch(
+        hosts=[{'host': host, 'port': 443}],
+        http_auth=awsauth,
+        use_ssl=True,
+        verify_certs=True,
+        connection_class=elasticsearch.connection.RequestsHttpConnection
+    )
+    pass_list = {}
+    pass_list.setdefault('tweet', [])
+    res = es.search(size=5000, index="tweetmap", doc_type="tweets", body={
+        "query": {
+            "bool": {
+                "must": {
+                    "match_all": {}
+                },
+                "filter": {
+                    "geo_distance": {
+                        "distance": "500mi",
+                        "location.coords": {
+                            "lat": kwargs["lat"],
+                            "lon": kwargs["lng"]
+                        }
+                    }
+                }
+            }
+        }
+    })
+    for j in res['hits']['hits']:
+        pass_list['tweet'].append(j['_source'])
+    pass_list_final = json.dumps(pass_list)
     return render(request,"index.html",{"my_data":pass_list_final})

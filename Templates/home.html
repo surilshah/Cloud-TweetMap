@@ -111,6 +111,11 @@
             zoom: 3,
             center: {lat: 39.0550557, lng: 4.0322128}
         });
+        var a;
+            google.maps.event.addListener(map, 'click', function(event) {
+                a = event.latLng;
+                window.location.href = "/geodist/"+a.lat()+"/"+a.lng();
+        });
     }
 </script>
 <script async defer
