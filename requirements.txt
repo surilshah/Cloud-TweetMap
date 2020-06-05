@@ -1,7 +1,7 @@
 appdirs==1.4.3
 click==6.7
 decorator==4.0.11
-Django==1.10.6
+Django==1.11.29
 elasticsearch==5.2.0
 geocoder==1.20.1
 oauthlib==2.0.1
